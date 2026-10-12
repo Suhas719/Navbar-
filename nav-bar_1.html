@@ -1,0 +1,993 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Dharmayana Floating Nav</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Domine:wght@500;600;700&family=Work+Sans:wght@400;500;600;700&display=swap');
+  :root{
+    color-scheme: light;
+    --teal-900:#16453A; --teal-800:#1B5347; --teal-700:#1E5C4C; --teal-600:#256B57;
+    --cream-050:#FBF3E7; --card:#FFFDF8;
+    --gold-500:#C89B3C; --gold-700:#8A6A1F; --gold-100:#F3E4C0;
+    --orange-500:#E07A3E; --orange-600:#C7622C; --orange-100:#FBE3D3;
+    --sage-100:#E8EFE1; --sage-700:#4C6B44;
+    --ink-900:#241C12; --ink-700:#463C2C; --ink-500:#8A8071; --ink-300:#E1D8C6;
+    --ai-1:#F0AA42; --ai-2:#DD8920;
+    --active-bg:#FBF3DC;
+    --ease:cubic-bezier(.32,.72,0,1);
+    --dur:480ms;
+    --shadow-card: 0 6px 16px rgba(36,28,18,.09), 0 1px 2px rgba(36,28,18,.05);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:#EDE7DA;}
+  body{
+    font-family:'Work Sans',system-ui,sans-serif;color:var(--ink-900);
+    min-height:100dvh;display:flex;justify-content:center;align-items:center;
+    padding:24px 16px;
+  }
+  button{font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+  .serif{font-family:'Domine',Georgia,serif;}
+  .eyebrow{font-size:10.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;}
+
+  /* ---------- phone frame + scroller ---------- */
+  .phone{
+    position:relative;flex:none;width:360px;height:700px;
+    background:var(--cream-050);border-radius:38px;overflow:hidden;
+    box-shadow:0 30px 70px rgba(22,69,58,.26), 0 2px 0 rgba(255,255,255,.6) inset;
+  }
+  .screen{
+    height:100%;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none;
+    -webkit-overflow-scrolling:touch;padding-bottom:150px;
+  }
+  .screen::-webkit-scrollbar{display:none;}
+  .stage{display:flex;align-items:flex-start;justify-content:center;gap:28px;}
+  .panel{width:224px;display:flex;flex-direction:column;gap:10px;}
+  .ctl{background:rgba(255,255,255,.82);border-radius:20px;padding:14px;box-shadow:0 4px 14px rgba(36,28,18,.08), inset 0 0 0 1px rgba(36,28,18,.05);}
+  .ctl-h{margin:0 0 10px;font-size:10.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-500);}
+  .seg{display:flex;flex-direction:column;gap:6px;}
+  .seg button{text-align:left;font-size:13px;font-weight:600;padding:10px 14px;border-radius:12px;background:#fff;color:var(--ink-700);box-shadow:inset 0 0 0 1px var(--ink-300);transition:background-color 200ms ease, color 200ms ease;}
+  .seg button[aria-pressed="true"]{background:var(--teal-900);color:var(--cream-050);box-shadow:none;}
+  .seg button:focus-visible{outline:2px solid var(--teal-700);outline-offset:2px;}
+  @media (max-width:640px){
+    body{padding:16px 0;}
+    .stage{flex-direction:column-reverse;align-items:center;gap:16px;}
+    .panel{width:360px;max-width:calc(100% - 32px);}
+  }
+
+  /* ---------- placeholder screen content ---------- */
+  .greet-row{padding:92px 20px 14px;}
+  .chip-eyebrow{display:inline-block;background:var(--gold-100);color:var(--gold-700);padding:5px 12px;border-radius:999px;}
+  .greet{margin:8px 0 0;font-size:22px;font-weight:700;color:var(--teal-900);letter-spacing:-.01em;}
+
+  /* ---------- app header: fixed green band, wordmark + city on the left, streak + profile on the right ---------- */
+  .hd{
+    position:absolute;top:0;left:0;right:0;z-index:15;height:76px;padding:14px 16px 0;
+    display:flex;justify-content:space-between;align-items:flex-start;color:#fff;
+  }
+  .hd-band{
+    position:absolute;inset:0;z-index:-1;border-radius:0 0 24px 24px;
+    background:linear-gradient(180deg,#679971,#5A8C66);
+    box-shadow:0 8px 20px rgba(22,69,58,.14);
+  }
+  .hd-left{display:flex;align-items:flex-start;height:48px;min-width:0;}
+  .hd-fl{flex:none;display:grid;place-items:center;width:20px;height:24px;margin-top:2px;}
+  .hd-flower{display:block;width:20px;height:24px;}
+  .hd-brand{margin-left:10px;white-space:nowrap;}
+  .hd-word{font-family:'Domine',Georgia,serif;font-size:22px;line-height:26px;font-weight:600;letter-spacing:-.01em;}
+  .hd-loc{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:500;color:rgba(255,255,255,.92);padding:1px 0;}
+  .hd-loc svg{width:8px;height:8px;display:block;}
+  .hd-right{position:relative;width:98px;height:48px;flex:none;}
+  .hd-avatar{
+    position:absolute;right:0;top:50%;translate:0 -50%;width:40px;height:40px;border-radius:50%;
+    background:rgba(255,255,255,.14);border:2px solid rgba(255,255,255,.5);
+  }
+  .hd-av-img{position:absolute;inset:0;border-radius:50%;overflow:hidden;display:grid;place-items:end center;color:rgba(255,255,255,.8);}
+  .hd-av-img svg{width:70%;height:70%;display:block;fill:currentColor;}
+  .hd-dot{position:absolute;top:-3px;right:-3px;width:13px;height:13px;border-radius:50%;background:#E88B2E;border:2px solid #5A8C66;}
+  .hd-streak{
+    position:absolute;top:50%;translate:0 -50%;right:48px;z-index:2;width:46px;height:46px;border-radius:23px;
+    display:flex;align-items:center;justify-content:center;gap:2px;
+    background:radial-gradient(circle at 34% 26%,#FFE68A,#F5B91F 58%,#D99907);color:#3B2A00;
+    font-size:14px;font-weight:700;letter-spacing:-.01em;
+    box-shadow:0 5px 12px rgba(0,0,0,.2), inset 0 -3px 6px rgba(150,90,0,.25), inset 0 2px 3px rgba(255,255,255,.5);
+  }
+  .hd-streak .fl{width:15px;height:15px;display:block;}
+  .hd button:focus-visible{outline:2px solid #fff;outline-offset:2px;}
+  .hero{
+    margin:6px 16px 0;border-radius:26px;padding:22px 20px 22px;color:var(--cream-050);position:relative;overflow:hidden;
+    background-image:
+      radial-gradient(rgba(255,255,255,.05) 1px, transparent 1.4px),
+      radial-gradient(70% 60% at 100% 0%, rgba(200,155,60,.22), transparent 65%),
+      linear-gradient(165deg, var(--teal-900), var(--teal-700));
+    background-size:15px 15px,100% 100%,100% 100%;
+    box-shadow:0 16px 32px rgba(22,69,58,.28);
+  }
+  .hero h2{margin:8px 0 8px;font-size:25px;line-height:1.22;font-weight:700;letter-spacing:-.01em;text-wrap:balance;}
+  .hero p{margin:0 0 16px;font-size:12.5px;line-height:1.5;color:rgba(251,243,231,.78);max-width:28ch;}
+  .explore{display:inline-flex;align-items:center;gap:4px;background:linear-gradient(180deg,#E89A33,#D8821D);color:#fff;font-weight:600;font-size:13px;padding:10px 18px 10px 20px;border-radius:999px;box-shadow:0 8px 16px rgba(216,130,29,.4);}
+  .section{padding:26px 20px 0;}
+  .section h3{margin:0 0 12px;font-size:16px;font-weight:700;color:var(--teal-900);}
+  .panchanga{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
+  .tile{background:var(--card);border-radius:18px;padding:13px 14px;box-shadow:var(--shadow-card);}
+  .tile .k{font-size:10.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-500);}
+  .tile .v{margin-top:5px;font-size:15px;font-weight:600;color:var(--ink-900);}
+  .tile .s{margin-top:2px;font-size:11.5px;color:var(--ink-700);}
+  .row{display:flex;align-items:center;gap:14px;background:var(--card);border-radius:20px;padding:14px 16px;box-shadow:var(--shadow-card);margin-bottom:10px;}
+  .row .badge{width:46px;height:46px;border-radius:15px;display:grid;place-items:center;flex:none;}
+  .row .t{font-size:14px;font-weight:600;color:var(--ink-900);}
+  .row .d{margin-top:2px;font-size:11.5px;color:var(--ink-500);line-height:1.35;}
+  .row .go{margin-left:auto;flex:none;}
+  .fest{display:flex;gap:12px;overflow-x:auto;scrollbar-width:none;margin:0 -20px;padding:2px 20px 6px;}
+  .fest::-webkit-scrollbar{display:none;}
+  .fest .card{flex:none;width:150px;border-radius:20px;padding:14px;color:#fff;box-shadow:0 10px 20px rgba(36,28,18,.18);}
+  .fest .card b{display:block;margin-top:10px;font-size:15px;font-family:'Domine',Georgia,serif;}
+  .fest .card span{display:block;margin-top:3px;font-size:11.5px;opacity:.88;}
+  .verse{background:var(--card);border-radius:22px;padding:18px 18px 16px;box-shadow:var(--shadow-card);}
+  .verse q{display:block;font-family:'Domine',Georgia,serif;font-size:15px;line-height:1.55;color:var(--teal-900);quotes:none;}
+  .verse small{display:block;margin-top:10px;font-size:11.5px;color:var(--ink-500);}
+  .recent{display:flex;gap:9px;flex-wrap:wrap;}
+  .rchip{display:inline-flex;align-items:center;font-size:12px;font-weight:500;padding:8px 14px;border-radius:999px;background:var(--card);border:1px solid rgba(36,28,18,.08);box-shadow:0 3px 10px rgba(36,28,18,.06);color:var(--ink-700);}
+
+  /* ---------- NAV ---------- */
+  .nav{
+    position:absolute;left:14px;right:14px;bottom:calc(14px + env(safe-area-inset-bottom,0px));
+    height:64px;z-index:20;pointer-events:none;
+  }
+  .pill,.ai{pointer-events:auto;}
+
+  .pill{
+    position:absolute;left:0;bottom:0;width:100%;height:64px;
+    display:flex;align-items:center;padding:0 8px;
+    background:#fff;border-radius:999px;overflow:hidden;
+    box-shadow:0 12px 30px rgba(36,28,18,.16), 0 2px 6px rgba(36,28,18,.07);
+    transition:
+      width var(--dur) var(--ease),
+      height var(--dur) var(--ease),
+      padding var(--dur) var(--ease);
+  }
+  .tab{
+    flex:1 1 0;min-width:0;height:54px;overflow:hidden;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+    border-radius:20px;color:#3A362F;
+    transition:flex-grow var(--dur) var(--ease), opacity 240ms ease, background-color 320ms ease;
+  }
+  .tab .ic{width:28px;height:28px;flex:none;display:block;}
+  .tab .lb{
+    font-size:11px;line-height:1;font-weight:500;white-space:nowrap;max-height:14px;
+    transition:opacity 220ms ease, max-height var(--dur) var(--ease), margin-top var(--dur) var(--ease), font-size var(--dur) var(--ease);
+  }
+  .tab.is-active{background:var(--active-bg);color:#1E1A14;}
+  .tab.is-active .lb{font-weight:700;}
+  .tab:focus-visible{outline:2px solid var(--teal-700);outline-offset:-3px;}
+  .ai:focus-visible{outline:2px solid var(--teal-700);outline-offset:3px;}
+  .slot{flex:0 0 84px;transition:flex-basis var(--dur) var(--ease);}
+
+  .ai{
+    position:absolute;left:calc(50% - 31px);bottom:31px;width:62px;height:62px;border-radius:50%;
+    display:grid;place-items:center;color:#fff;
+    background:radial-gradient(circle at 32% 26%, var(--ai-1), var(--ai-2) 78%);
+    box-shadow:
+      0 0 0 4px #fff,
+      0 0 0 10px rgba(240,170,66,.26),
+      0 14px 26px rgba(221,137,32,.36);
+    transition:
+      left var(--dur) var(--ease),
+      bottom var(--dur) var(--ease),
+      width var(--dur) var(--ease),
+      height var(--dur) var(--ease),
+      box-shadow var(--dur) var(--ease),
+      transform 160ms ease,
+      opacity 260ms ease,
+      scale 360ms var(--ease);
+  }
+  .ai svg{width:46%;height:46%;display:block;filter:drop-shadow(0 1px 1px rgba(150,84,10,.35));}
+  .ai:active{transform:scale(.94);}
+
+  /* ---------- audio player (shares the AI button's slot) ---------- */
+  .player{
+    position:absolute;left:calc(50% - 31px);bottom:31px;width:62px;height:62px;border-radius:31px;overflow:hidden;z-index:2;
+    color:var(--cream-050);
+    background:radial-gradient(circle at 30% 22%, #2E8068, var(--teal-800) 55%, var(--teal-900));
+    box-shadow:
+      0 0 0 4px #fff,
+      0 0 0 10px rgba(30,92,76,.22),
+      0 14px 26px rgba(22,69,58,.38);
+    opacity:0;scale:.6;pointer-events:none;
+    transition:
+      left var(--dur) var(--ease),
+      bottom var(--dur) var(--ease),
+      width var(--dur) var(--ease),
+      height var(--dur) var(--ease),
+      border-radius var(--dur) var(--ease),
+      box-shadow var(--dur) var(--ease),
+      opacity 260ms ease,
+      scale 360ms var(--ease);
+  }
+  .p-fab{position:absolute;inset:0;display:grid;place-items:center;color:var(--cream-050);transition:opacity 240ms ease;}
+  .p-fab .ring{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg);}
+  .p-fab .glyph{position:relative;width:22px;height:22px;display:block;}
+  .p-mini{
+    position:absolute;left:0;top:0;bottom:0;width:100%;min-width:190px;
+    display:flex;align-items:center;gap:7px;padding:0 6px 0 9px;
+    opacity:0;pointer-events:none;transition:opacity 200ms ease;
+  }
+  .p-art{position:relative;width:34px;height:34px;flex:none;display:grid;place-items:center;border-radius:50%;background:rgba(255,255,255,.08);}
+  .p-art .ring{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg);}
+  .p-meta{flex:1 1 0;min-width:0;}
+  .p-meta b{display:block;font-size:12px;font-weight:600;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .p-meta span{display:block;margin-top:2px;font-size:10.5px;line-height:1.1;color:rgba(251,243,231,.7);font-variant-numeric:tabular-nums;white-space:nowrap;}
+  .p-toggle{width:34px;height:34px;border-radius:50%;background:var(--cream-050);color:var(--teal-900);display:grid;place-items:center;flex:none;}
+  .p-close{width:22px;height:22px;display:grid;place-items:center;flex:none;color:rgba(251,243,231,.72);}
+  .p-x{
+    position:absolute;left:calc(50% + 11px);bottom:73px;width:22px;height:22px;border-radius:50%;z-index:3;
+    background:#fff;color:var(--teal-900);display:grid;place-items:center;box-shadow:0 3px 8px rgba(0,0,0,.2);
+    opacity:0;scale:.5;pointer-events:none;
+    transition:opacity 220ms ease, scale 300ms var(--ease);
+  }
+  .eq{display:flex;align-items:flex-end;gap:2px;height:14px;}
+  .eq i{width:3px;height:100%;border-radius:2px;background:#F0C25A;transform-origin:bottom;transform:scaleY(.35);}
+  .nav[data-playing="true"] .eq i{animation:eq 900ms ease-in-out infinite;}
+  .eq i:nth-child(2){animation-delay:-300ms;} .eq i:nth-child(3){animation-delay:-600ms;}
+  @keyframes eq{0%,100%{transform:scaleY(.3);}50%{transform:scaleY(1);}}
+  .i-pause{display:none;}
+  .nav[data-playing="true"] .i-play{display:none;}
+  .nav[data-playing="true"] .i-pause{display:block;}
+  .player button:focus-visible,.p-x:focus-visible{outline:2px solid #F0C25A;outline-offset:2px;}
+
+  /* audio on: the player takes over the AI button's raised centre slot */
+  .nav[data-slot="audio"] .player{opacity:1;scale:1;pointer-events:auto;}
+  .nav[data-layout="hide"][data-state="expanded"]:not([data-slot="ai"]) .ai{opacity:0;scale:.55;pointer-events:none;}
+  .nav[data-slot="audio"][data-state="expanded"] .p-x{opacity:1;scale:1;pointer-events:auto;}
+  .nav[data-slot="feedback"][data-state="expanded"] .fb-x{opacity:1;scale:1;pointer-events:auto;}
+
+  /* collapsed: pill folds to the left, AI button travels to the right */
+  .nav[data-state="collapsed"] .pill{width:58px;height:58px;padding:0;}
+  .nav[data-state="collapsed"] .tab{flex-grow:0;opacity:0;pointer-events:none;}
+  .nav[data-state="collapsed"] .tab.is-active{flex-grow:1;opacity:1;pointer-events:auto;background-color:transparent;height:58px;}
+  .nav[data-state="collapsed"] .tab.is-active .lb{opacity:0;max-height:0;margin-top:-3px;}
+  .nav[data-state="collapsed"] .slot{flex-basis:0;}
+  .nav[data-state="collapsed"] .ai{
+    left:calc(100% - 58px);bottom:0;width:58px;height:58px;
+    box-shadow:
+      0 0 0 2px #fff,
+      0 0 0 2px rgba(240,170,66,0),
+      0 12px 24px rgba(221,137,32,.34);
+  }
+
+  /* ---------- order feedback (also shares the AI button's slot) ---------- */
+  .fb{
+    position:absolute;left:calc(50% - 56px);bottom:31px;width:112px;height:62px;border-radius:31px;overflow:hidden;z-index:2;
+    color:var(--cream-050);
+    background:linear-gradient(160deg,#3D3023,#241C12);
+    box-shadow:
+      0 0 0 4px #fff,
+      0 0 0 10px rgba(36,28,18,.14),
+      0 14px 26px rgba(36,28,18,.34);
+    opacity:0;scale:.6;pointer-events:none;
+    transition:
+      left var(--dur) var(--ease),
+      bottom var(--dur) var(--ease),
+      width var(--dur) var(--ease),
+      height var(--dur) var(--ease),
+      border-radius var(--dur) var(--ease),
+      box-shadow var(--dur) var(--ease),
+      opacity 260ms ease,
+      scale 360ms var(--ease);
+  }
+  .nav[data-slot="feedback"] .fb{opacity:1;scale:1;pointer-events:auto;}
+  .fb-fab{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;transition:opacity 240ms ease;}
+  .fb-actions{display:flex;align-items:center;width:100%;height:100%;}
+  .fb-btn{flex:1 1 0;height:100%;display:grid;place-items:center;color:var(--cream-050);transition:color 160ms ease, background-color 160ms ease;}
+  .fb-btn svg{width:22px;height:22px;display:block;}
+  .fb-btn:active{background:rgba(255,255,255,.1);}
+  .fb-btn[data-v="up"]:active{color:#9BD6A0;}
+  .fb-btn[data-v="down"]:active{color:#F4A27A;}
+  .fb-div{width:1px;height:26px;background:rgba(255,255,255,.18);flex:none;}
+  .fb-done{display:none;place-items:center;color:#9BD6A0;}
+  .fb-done svg{width:26px;height:26px;display:block;}
+  .nav[data-fb="thanks"] .fb-actions{display:none;}
+  .nav[data-fb="thanks"] .fb-done{display:grid;}
+  .fb-mini{
+    position:absolute;left:0;top:0;bottom:0;width:100%;min-width:190px;
+    display:flex;align-items:center;gap:6px;padding:0 6px 0 15px;
+    opacity:0;pointer-events:none;transition:opacity 200ms ease;
+  }
+  .fb-q{flex:1 1 0;min-width:0;font-size:12px;font-weight:600;line-height:1.25;}
+  .fb-mini .fb-mbtn{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.12);color:var(--cream-050);display:grid;place-items:center;flex:none;transition:background-color 160ms ease;}
+  .fb-mini .fb-mbtn svg{width:17px;height:17px;display:block;}
+  .fb-mini .fb-mbtn[data-v="up"]:active{background:rgba(155,214,160,.35);}
+  .fb-mini .fb-mbtn[data-v="down"]:active{background:rgba(244,162,122,.35);}
+  .fb-mini .fb-mactions{display:flex;align-items:center;gap:5px;flex:none;}
+  .fb-mini .fb-mdone{display:none;color:#9BD6A0;flex:none;margin-right:8px;}
+  .nav[data-fb="thanks"] .fb-mini .fb-mactions{display:none;}
+  .nav[data-fb="thanks"] .fb-mini .fb-mdone{display:block;}
+  .fb-mini .fb-mclose{width:22px;height:22px;display:grid;place-items:center;flex:none;color:rgba(251,243,231,.72);}
+  .nav[data-fb="thanks"] .fb-mini .fb-mclose{display:none;}
+  .fb-tip{
+    position:absolute;left:50%;bottom:116px;translate:-50% 0;white-space:nowrap;z-index:3;
+    background:#241C12;color:var(--cream-050);font-size:11.5px;font-weight:600;padding:8px 13px;border-radius:12px;
+    box-shadow:0 8px 18px rgba(0,0,0,.24);
+    opacity:0;scale:.85;transform-origin:50% 100%;pointer-events:none;
+    transition:opacity 220ms ease, scale 300ms var(--ease);
+  }
+  .fb-tip::after{content:"";position:absolute;left:50%;bottom:-4px;width:9px;height:9px;background:#241C12;translate:-50% 0;rotate:45deg;border-radius:2px;}
+  .nav[data-slot="feedback"][data-state="expanded"] .fb-tip{opacity:1;scale:1;}
+  .fb-x{left:calc(50% + 36px);bottom:77px;}
+  .fb button:focus-visible,.fb-x:focus-visible{outline:2px solid #F0C25A;outline-offset:-3px;}
+
+  /* dock-only pieces (hidden in the current layout) */
+  .p-xin{
+    position:absolute;top:-5px;right:-5px;width:20px;height:20px;border-radius:50%;z-index:3;
+    background:#fff;color:var(--teal-900);display:none;place-items:center;box-shadow:0 3px 8px rgba(0,0,0,.2);
+  }
+  .fb-icon{position:absolute;inset:0;display:none;place-items:center;color:var(--cream-050);transition:opacity 200ms ease;}
+  .fb-icon svg{width:22px;height:22px;display:block;}
+  .fb-icon .i-check{display:none;color:#9BD6A0;}
+  .nav[data-fb="thanks"] .fb-icon .i-up{display:none;}
+  .nav[data-fb="thanks"] .fb-icon .i-check{display:block;}
+  .fb-icon::after{content:"";position:absolute;inset:-6px;border-radius:50%;border:2px solid rgba(240,194,90,.6);animation:fbpulse 1.8s ease-out infinite;pointer-events:none;}
+  .nav[data-fb="thanks"] .fb-icon::after{display:none;}
+  @keyframes fbpulse{0%{transform:scale(.88);opacity:.9;}100%{transform:scale(1.3);opacity:0;}}
+  .fb-icon:focus-visible,.p-xin:focus-visible{outline:2px solid #F0C25A;outline-offset:2px;}
+
+  /* collapsed + audio: the player stretches into a mini bar between the two circles */
+  .nav[data-state="collapsed"] .player{
+    left:68px;bottom:0;width:calc(100% - 136px);height:58px;border-radius:29px;
+    box-shadow:
+      0 0 0 2px #fff,
+      0 0 0 2px rgba(30,92,76,0),
+      0 12px 24px rgba(22,69,58,.34);
+  }
+  .nav[data-state="collapsed"] .p-fab{opacity:0;pointer-events:none;}
+  .nav[data-state="collapsed"] .p-mini{opacity:1;pointer-events:auto;transition-delay:180ms;}
+  .nav[data-state="collapsed"] .fb{
+    left:68px;bottom:0;width:calc(100% - 136px);height:58px;border-radius:29px;
+    box-shadow:
+      0 0 0 2px #fff,
+      0 0 0 2px rgba(36,28,18,0),
+      0 12px 24px rgba(36,28,18,.3);
+  }
+  .nav[data-state="collapsed"] .fb-fab{opacity:0;pointer-events:none;}
+  .nav[data-state="collapsed"] .fb-mini{opacity:1;pointer-events:auto;transition-delay:180ms;}
+  .nav[data-state="collapsed"] .fb-tip{opacity:0;}
+
+  /* ---------- layout B: AI, audio and feedback are independent circles beside the nav ---------- */
+  /* AI is a permanent circle on the right; the nav pill has no centre gap and stops short of it */
+  .nav[data-layout="dock"][data-state="expanded"] .pill{width:calc(100% - 68px);}
+  .nav[data-layout="dock"][data-state="expanded"] .slot{flex-basis:0;}
+  .nav[data-layout="dock"][data-state="expanded"] .ai{
+    left:calc(100% - 58px);bottom:3px;width:58px;height:58px;
+    box-shadow:
+      0 0 0 2px #fff,
+      0 0 0 2px rgba(240,170,66,0),
+      0 12px 24px rgba(221,137,32,.34);
+  }
+  /* audio + feedback become 52px circles: stacked above the AI when expanded, in a row when collapsed.
+     --pi / --fi (set from JS) say how far from the AI each one sits. */
+  .nav[data-layout="dock"][data-state] .player,
+  .nav[data-layout="dock"][data-state] .fb{
+    width:52px;height:52px;border-radius:50%;overflow:visible;left:calc(100% - 55px);
+  }
+  .nav[data-layout="dock"][data-state] .player{
+    bottom:calc(71px + var(--pi,0) * 62px);
+    box-shadow:0 0 0 2px #fff, 0 0 0 2px rgba(30,92,76,0), 0 12px 24px rgba(22,69,58,.34);
+  }
+  .nav[data-layout="dock"][data-state] .fb{
+    bottom:calc(71px + var(--fi,0) * 62px);
+    box-shadow:0 0 0 2px #fff, 0 0 0 2px rgba(36,28,18,0), 0 12px 24px rgba(36,28,18,.3);
+  }
+  .nav[data-layout="dock"][data-state="collapsed"] .player{left:calc(100% - 120px - var(--pi,0) * 62px);bottom:3px;}
+  .nav[data-layout="dock"][data-state="collapsed"] .fb{left:calc(100% - 120px - var(--fi,0) * 62px);bottom:3px;}
+  .nav[data-layout="dock"][data-audio="on"] .player{opacity:1;scale:1;pointer-events:auto;}
+  .nav[data-layout="dock"][data-fb-live="true"] .fb{opacity:1;scale:1;pointer-events:auto;}
+  /* closed circle: ring + glyph. open: the same mini pill used by the current layout, grown out of the circle */
+  .nav[data-layout="dock"][data-state] .p-fab{opacity:1;pointer-events:auto;}
+  .nav[data-layout="dock"][data-state] .p-mini,
+  .nav[data-layout="dock"][data-state] .fb-mini{opacity:0;pointer-events:none;transition-delay:0ms;}
+  .nav[data-layout="dock"][data-state] .fb-fab{display:none;}
+  .nav[data-layout="dock"] .p-x,
+  .nav[data-layout="dock"] .fb-x,
+  .nav[data-layout="dock"] .fb-tip{display:none;}
+  .nav[data-layout="dock"] .p-xin{display:grid;}
+  .nav[data-layout="dock"] .fb-icon{display:grid;}
+
+  .nav[data-layout="dock"][data-state][data-open="audio"] .player{
+    width:226px;left:calc(100% - 229px);border-radius:26px;overflow:hidden;
+  }
+  .nav[data-layout="dock"][data-state][data-open="feedback"] .fb{
+    width:226px;left:calc(100% - 229px);border-radius:26px;overflow:hidden;
+  }
+  .nav[data-layout="dock"][data-state="collapsed"][data-open="audio"] .player,
+  .nav[data-layout="dock"][data-state="collapsed"][data-open="feedback"] .fb{left:64px;width:calc(100% - 128px);}
+  .nav[data-layout="dock"][data-state][data-open="audio"] .p-fab,
+  .nav[data-layout="dock"][data-state][data-open="audio"] .p-xin,
+  .nav[data-layout="dock"][data-state][data-open="feedback"] .fb-icon{opacity:0;pointer-events:none;}
+  .nav[data-layout="dock"][data-state][data-open="audio"] .p-mini,
+  .nav[data-layout="dock"][data-state][data-open="feedback"] .fb-mini{opacity:1;pointer-events:auto;transition-delay:150ms;}
+  /* scrolled row: the open pill only has the gap between the home bubble and the AI, so its contents run tighter */
+  .nav[data-layout="dock"][data-state="collapsed"][data-open="audio"] .p-mini,
+  .nav[data-layout="dock"][data-state="collapsed"][data-open="feedback"] .fb-mini{min-width:0;gap:5px;padding:0 4px 0 12px;}
+  .nav[data-layout="dock"][data-state="collapsed"][data-open="audio"] .p-mini{padding-left:9px;}
+  .nav[data-layout="dock"][data-state="collapsed"] .player .p-art{width:30px;height:30px;}
+  .nav[data-layout="dock"][data-state="collapsed"] .player .p-toggle,
+  .nav[data-layout="dock"][data-state="collapsed"] .fb-mini .fb-mbtn{width:30px;height:30px;}
+  .nav[data-layout="dock"][data-state="collapsed"] .fb-mini .fb-mbtn svg{width:15px;height:15px;}
+  .nav[data-layout="dock"][data-state="collapsed"] .fb-mini .fb-mactions{gap:4px;}
+  .nav[data-layout="dock"][data-state="collapsed"] .fb-q{font-size:11.5px;}
+  /* in the scrolled row the open pill needs the room, so the other circle steps out of the way */
+  .nav[data-layout="dock"][data-state="collapsed"][data-open="audio"] .fb,
+  .nav[data-layout="dock"][data-state="collapsed"][data-open="feedback"] .player{opacity:0;scale:.7;pointer-events:none;}
+
+  /* "Listen" trigger inside the page content */
+  .listen{width:44px;height:44px;border-radius:50%;background:var(--teal-800);color:var(--cream-050);display:grid;place-items:center;margin-left:auto;flex:none;box-shadow:0 6px 14px rgba(22,69,58,.3);}
+  .listen .i-pause{display:none;}
+  .listen.is-playing .i-play{display:none;}
+  .listen.is-playing .i-pause{display:block;}
+  .listen:focus-visible{outline:2px solid var(--teal-700);outline-offset:2px;}
+  .rate{margin-left:auto;flex:none;font-size:12px;font-weight:600;padding:9px 15px;border-radius:999px;background:var(--orange-100);color:var(--orange-600);}
+  .rate:focus-visible{outline:2px solid var(--teal-700);outline-offset:2px;}
+
+  @media (prefers-reduced-motion: reduce){
+    .pill,.tab,.tab .lb,.slot,.ai,.player,.p-fab,.p-mini,.p-x,.fb,.fb-fab,.fb-mini,.fb-tip,.fb-icon{transition-duration:.01ms !important;}
+    .fb-icon::after{animation:none;}
+    .nav[data-playing="true"] .eq i{animation:none;transform:scaleY(.7);}
+  }
+</style>
+</head>
+<body>
+
+<div class="stage">
+
+<aside class="panel" aria-label="Prototype controls">
+  <div class="ctl">
+    <h2 class="ctl-h">Nav layout</h2>
+    <div class="seg layout-toggle" role="group" aria-label="Nav layout">
+      <button type="button" data-layout="hide" aria-pressed="true">Current</button>
+      <button type="button" data-layout="dock" aria-pressed="false">AI docks right</button>
+    </div>
+  </div>
+  <div class="ctl">
+    <h2 class="ctl-h">Audio player</h2>
+    <div class="seg" role="group" aria-label="Audio player">
+      <button type="button" id="ctlAudioOn" aria-pressed="false">Playing</button>
+      <button type="button" id="ctlAudioOff" aria-pressed="true">Off</button>
+    </div>
+  </div>
+  <div class="ctl">
+    <h2 class="ctl-h">Order feedback</h2>
+    <div class="seg" role="group" aria-label="Order feedback">
+      <button type="button" id="ctlFbOn" aria-pressed="false">Asking</button>
+      <button type="button" id="ctlFbOff" aria-pressed="true">Off</button>
+    </div>
+  </div>
+</aside>
+
+<div class="phone">
+
+  <header class="hd" id="hd" data-state="expanded">
+    <div class="hd-band" aria-hidden="true"></div>
+    <div class="hd-left">
+      <div class="hd-fl"><svg class="hd-flower" viewBox="0 0 32 32" aria-hidden="true">
+        <defs><linearGradient id="hdPink" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FAC3D8"/><stop offset="1" stop-color="#E26E9A"/></linearGradient></defs>
+        <path d="M5.5 9.5C11.5 10.5 15.4 16 15.6 25.5 8 24.4 3.6 18 5.5 9.5z" fill="#EC86AC"/>
+        <path d="M26.5 9.5C20.5 10.5 16.6 16 16.4 25.5 24 24.4 28.4 18 26.5 9.5z" fill="#EC86AC"/>
+        <path d="M16 3.5C21 9 22 16 16 27 10 16 11 9 16 3.5z" fill="url(#hdPink)"/>
+      </svg></div>
+      <div class="hd-brand">
+        <div class="hd-word">Dharm&#257;yana</div>
+        <button class="hd-loc" aria-label="Change city, currently Ujjain">Ujjain
+          <svg viewBox="0 0 10 10" aria-hidden="true"><path d="M1 2.5h8L5 8z" fill="currentColor"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="hd-right">
+      <button class="hd-streak" aria-label="12 day streak">
+        <svg class="fl" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2c.6 3.2 4.6 5.4 4.6 10a4.6 4.6 0 0 1-9.2 0c0-1.9.8-3 1.7-4 .2 1.3.8 2 1.6 2.2C10.3 7.8 10.5 4.6 12 2z" fill="#EE5A1E"/><path d="M12 11c.5 1.2 2 1.9 2 3.6a2 2 0 0 1-4 0c0-1.3 1.2-2 2-3.6z" fill="#FFC53D"/></svg>12
+      </button>
+      <button class="hd-avatar" aria-label="Profile">
+        <span class="hd-av-img"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.5" r="4"/><path d="M3 24c.6-6 4-9 9-9s8.4 3 9 9z"/></svg></span>
+        <i class="hd-dot"></i>
+      </button>
+    </div>
+  </header>
+
+  <div class="screen" id="screen">
+
+    <div class="greet-row">
+      <span class="eyebrow chip-eyebrow">Dharmayatri</span>
+      <h1 class="serif greet">Namaste, Arjun</h1>
+    </div>
+
+    <div class="hero">
+      <span class="eyebrow" style="color:var(--gold-100);">Shukla Paksha &middot; Saptami</span>
+      <h2 class="serif">Your stars, your days, your decisions.</h2>
+      <p>Daily guidance from your Kundli, timed to today&rsquo;s Panchanga.</p>
+      <button class="explore">Explore
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+      </button>
+    </div>
+
+    <div class="section">
+      <h3 class="serif">Your order</h3>
+      <div class="row" style="margin-bottom:0;">
+        <div class="badge" style="background:var(--orange-100);">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C7622C" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="12" r="6"/><circle cx="15" cy="12" r="6"/></svg>
+        </div>
+        <div><div class="t">Kundali Matching Report</div><div class="d">Delivered today &middot; Arjun &amp; Priya</div></div>
+        <button class="rate" id="rate">Rate</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3 class="serif">Listen</h3>
+      <div class="row" style="margin-bottom:0;">
+        <div class="badge" style="background:var(--gold-100);">
+          <svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true">
+            <path d="M16 3.6c3.2 3.6 4.4 6.2 4.4 8.6a4.4 4.4 0 0 1-8.8 0c0-2.4 1.2-5 4.4-8.6z" fill="#F59E0B"/>
+            <path d="M16 9c1.4 1.7 1.9 2.8 1.9 3.8a1.9 1.9 0 0 1-3.8 0c0-1 .5-2.1 1.9-3.8z" fill="#FDE68A"/>
+            <path d="M4.5 17.5h23c0 5.6-4.9 9.4-11.5 9.4S4.5 23.1 4.5 17.5z" fill="#B5651D"/>
+            <path d="M11 28.4h10" stroke="#8A4B1F" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div><div class="t">Suprabhatam</div><div class="d">Morning prarthana &middot; 4 min</div></div>
+        <button class="listen" id="listen" aria-label="Play Suprabhatam">
+          <svg class="i-play" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z" fill="currentColor"/></svg>
+          <svg class="i-pause" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><rect x="6.5" y="5" width="4" height="14" rx="1.2" fill="currentColor"/><rect x="13.5" y="5" width="4" height="14" rx="1.2" fill="currentColor"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3 class="serif">Today&rsquo;s Panchanga</h3>
+      <div class="panchanga">
+        <div class="tile"><div class="k">Tithi</div><div class="v">Saptami</div><div class="s">until 4:12 pm</div></div>
+        <div class="tile"><div class="k">Nakshatra</div><div class="v">Magha</div><div class="s">until 9:40 pm</div></div>
+        <div class="tile"><div class="k">Rahu Kala</div><div class="v">10:30 &ndash; 12:00</div><div class="s">avoid new starts</div></div>
+        <div class="tile"><div class="k">Abhijit</div><div class="v">11:48 &ndash; 12:36</div><div class="s">most auspicious</div></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3 class="serif">Services</h3>
+
+      <div class="row">
+        <div class="badge" style="background:var(--sage-100);">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4C6B44" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="3"/><path d="M4 19c.6-3 2.4-5 5-5s4.4 2 5 5"/><path d="M15 6h5a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1h-1.5L17 15v-2H15a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1Z"/></svg>
+        </div>
+        <div><div class="t">Talk to a Jyotishi</div><div class="d">Verified astrologers, on call in minutes</div></div>
+        <svg class="go" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8A8071" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+      </div>
+
+      <div class="row">
+        <div class="badge" style="background:var(--orange-100);">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C7622C" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="12" r="6"/><circle cx="15" cy="12" r="6"/></svg>
+        </div>
+        <div><div class="t">Kundali Matching</div><div class="d">Ashtakoot score with a detailed report</div></div>
+        <svg class="go" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8A8071" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+      </div>
+
+      <div class="row">
+        <div class="badge" style="background:var(--gold-100);">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8A6A1F" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20c-4-1-6-4-6-7 2 .5 4 2 6 5 2-3 4-4.5 6-5 0 3-2 6-6 7Z"/><path d="M12 13c-2-3-2-6 0-9 2 3 2 6 0 9Z"/></svg>
+        </div>
+        <div><div class="t">Book a Pooja</div><div class="d">Performed at the temple, streamed live</div></div>
+        <svg class="go" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8A8071" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+      </div>
+
+      <div class="row">
+        <div class="badge" style="background:#EAF2EE;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1B5347" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19C5 10 12 4 20 4c0 8-6 15-15 15Z"/><path d="M6 18c3-4 6-7 12-12"/></svg>
+        </div>
+        <div><div class="t">Ayurveda Consultation</div><div class="d">Dosha-based guidance from vaidyas</div></div>
+        <svg class="go" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8A8071" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3 class="serif">Upcoming festivals</h3>
+      <div class="fest">
+        <div class="card" style="background:linear-gradient(150deg,#C7622C,#E07A3E);">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3v18"/><path d="M5 4h13l-3 3.5L18 11H5"/></svg>
+          <b>Vijayadashami</b><span>Oct 20 &middot; in 8 days</span>
+        </div>
+        <div class="card" style="background:linear-gradient(150deg,#8A5636,#5C371F);">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c1 1.4 1.4 2.3 1.4 3a1.4 1.4 0 1 1-2.8 0c0-.7.4-1.6 1.4-3Z"/><path d="M4 14c0-1.1.9-2 2-2h12a2 2 0 0 1 2 2c0 3.3-3.6 6-8 6s-8-2.7-8-6Z"/></svg>
+          <b>Dhanteras</b><span>Nov 6 &middot; in 25 days</span>
+        </div>
+        <div class="card" style="background:linear-gradient(150deg,#4C6B44,#2C3F1A);">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M3 12h2M19 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/></svg>
+          <b>Deepavali</b><span>Nov 8 &middot; in 27 days</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3 class="serif">Verse of the day</h3>
+      <div class="verse">
+        <q>karma&#7751;y-evadhikaras te ma phale&#7779;u kadacana</q>
+        <small>You have a right to your actions, never to their fruits &mdash; Bhagavad Gita 2.47</small>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3 class="serif">Recent</h3>
+      <div class="recent">
+        <span class="rchip">Festivals</span><span class="rchip">Devta</span><span class="rchip">Dhyana</span><span class="rchip">Kundali Matching</span><span class="rchip">Hindu Birthday</span>
+      </div>
+    </div>
+
+  </div><!-- /screen -->
+
+  <!-- NAV: expanded by default; collapses left on scroll-down, the AI button travels right -->
+  <nav class="nav" id="nav" data-state="expanded" data-layout="hide" aria-label="Main">
+    <div class="pill" id="pill">
+
+      <button class="tab is-active" data-tab="home" aria-current="page">
+        <svg class="ic" viewBox="0 0 32 32" aria-hidden="true">
+          <rect x="6.5" y="14.5" width="19" height="13" rx="2.2" fill="#F6DDAE"/>
+          <path d="M13 27.5v-6.2a3 3 0 0 1 6 0v6.2z" fill="#9A5224"/>
+          <path d="M3.2 16.2 16 5l12.8 11.2" fill="#D9742F" stroke="#B5561B" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+          <path d="M3.2 16.2 16 5l12.8 11.2z" fill="#E48A3F"/>
+          <circle cx="16" cy="12.4" r="1.7" fill="#FBE3B0"/>
+        </svg>
+        <span class="lb">Home</span>
+      </button>
+
+      <button class="tab" data-tab="bhakti">
+        <svg class="ic" viewBox="0 0 32 32" aria-hidden="true">
+          <path d="M16 3.6c3.2 3.6 4.4 6.2 4.4 8.6a4.4 4.4 0 0 1-8.8 0c0-2.4 1.2-5 4.4-8.6z" fill="#F59E0B"/>
+          <path d="M16 9c1.4 1.7 1.9 2.8 1.9 3.8a1.9 1.9 0 0 1-3.8 0c0-1 .5-2.1 1.9-3.8z" fill="#FDE68A"/>
+          <path d="M4.5 17.5h23c0 5.6-4.9 9.4-11.5 9.4S4.5 23.1 4.5 17.5z" fill="#B5651D"/>
+          <path d="M4.5 17.5h23" stroke="#8A4B1F" stroke-width="1.6" stroke-linecap="round"/>
+          <path d="M11 28.4h10" stroke="#8A4B1F" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+        <span class="lb">Bhakti</span>
+      </button>
+
+      <span class="slot" aria-hidden="true"></span>
+
+      <button class="tab" data-tab="jyotisha">
+        <svg class="ic" viewBox="0 0 32 32" aria-hidden="true">
+          <path d="M13 6C13.9 11.6 15.4 13.1 21 14 15.4 14.9 13.9 16.4 13 22 12.1 16.4 10.6 14.9 5 14 10.6 13.1 12.1 11.6 13 6Z" fill="#F5B82E"/>
+          <path d="M24 4C24.4 6.8 25.2 7.6 28 8 25.2 8.4 24.4 9.2 24 12 23.6 9.2 22.8 8.4 20 8 22.8 7.6 23.6 6.8 24 4Z" fill="#F7C84F"/>
+          <path d="M23 21C23.3 23 24 23.7 26 24 24 24.3 23.3 25 23 27 22.7 25 22 24.3 20 24 22 23.7 22.7 23 23 21Z" fill="#F7C84F"/>
+        </svg>
+        <span class="lb">Jyotisha</span>
+      </button>
+
+      <button class="tab" data-tab="more">
+        <svg class="ic" viewBox="0 0 32 32" aria-hidden="true">
+          <circle cx="7.5" cy="16" r="2.3" fill="#4A4640"/><circle cx="16" cy="16" r="2.3" fill="#4A4640"/><circle cx="24.5" cy="16" r="2.3" fill="#4A4640"/>
+        </svg>
+        <span class="lb">More</span>
+      </button>
+
+    </div>
+
+    <button class="ai" id="ai" aria-label="Ask Saarathi">
+      <svg viewBox="0 0 32 32" aria-hidden="true">
+        <path d="M16 3C17.3 11.8 20.2 14.7 29 16 20.2 17.3 17.3 20.2 16 29 14.7 20.2 11.8 17.3 3 16 11.8 14.7 14.7 11.8 16 3Z" fill="#fff"/>
+      </svg>
+    </button>
+
+    <div class="player" id="player" role="group" aria-label="Audio player">
+      <button class="p-fab" id="pFab" aria-label="Play or pause Suprabhatam">
+        <svg class="ring" viewBox="0 0 62 62" aria-hidden="true">
+          <circle cx="31" cy="31" r="27" fill="none" stroke="rgba(255,255,255,.2)" stroke-width="3"/>
+          <circle class="prog" cx="31" cy="31" r="27" fill="none" stroke="#F0C25A" stroke-width="3" stroke-linecap="round" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100"/>
+        </svg>
+        <svg class="glyph i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z" fill="currentColor"/></svg>
+        <svg class="glyph i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6.5" y="5" width="4" height="14" rx="1.2" fill="currentColor"/><rect x="13.5" y="5" width="4" height="14" rx="1.2" fill="currentColor"/></svg>
+      </button>
+
+      <div class="p-mini" id="pMini">
+        <div class="p-art" aria-hidden="true">
+          <svg class="ring" viewBox="0 0 38 38">
+            <circle cx="19" cy="19" r="17" fill="none" stroke="rgba(255,255,255,.2)" stroke-width="2.5"/>
+            <circle class="prog" cx="19" cy="19" r="17" fill="none" stroke="#F0C25A" stroke-width="2.5" stroke-linecap="round" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100"/>
+          </svg>
+          <span class="eq"><i></i><i></i><i></i></span>
+        </div>
+        <div class="p-meta"><b>Suprabhatam</b><span class="p-time">0:00 / 4:12</span></div>
+        <button class="p-toggle" id="pToggle" aria-label="Play or pause">
+          <svg class="i-play" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z" fill="currentColor"/></svg>
+          <svg class="i-pause" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><rect x="6.5" y="5" width="4" height="14" rx="1.2" fill="currentColor"/><rect x="13.5" y="5" width="4" height="14" rx="1.2" fill="currentColor"/></svg>
+        </button>
+        <button class="p-close" id="pClose" aria-label="Close player">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+      </div>
+
+      <button class="p-xin" id="pXin" aria-label="Close player">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+
+    <button class="p-x" id="pX" aria-label="Close player">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+
+    <div class="fb" id="fb" role="group" aria-label="Order feedback">
+      <div class="fb-fab" id="fbFab">
+        <div class="fb-actions">
+          <button class="fb-btn" data-v="down" aria-label="Not good"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/></svg></button>
+          <span class="fb-div" aria-hidden="true"></span>
+          <button class="fb-btn" data-v="up" aria-label="Good"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg></button>
+        </div>
+        <div class="fb-done" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+      </div>
+      <button class="fb-icon" id="fbIcon" aria-label="Order feedback">
+        <svg class="i-up" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+        <svg class="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+      </button>
+
+      <div class="fb-mini" id="fbMini">
+        <div class="fb-q" id="fbQ">How was your order?</div>
+        <div class="fb-mactions">
+          <button class="fb-mbtn" data-v="down" aria-label="Not good"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/></svg></button>
+          <button class="fb-mbtn" data-v="up" aria-label="Good"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg></button>
+        </div>
+        <div class="fb-mdone" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+        <button class="fb-mclose" id="fbClose" aria-label="Dismiss">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="fb-tip" id="fbTip" aria-live="polite">How was your order?</div>
+
+    <button class="p-x fb-x" id="fbX" aria-label="Dismiss feedback">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+  </nav>
+
+</div><!-- /phone -->
+
+</div><!-- /stage -->
+
+<script>
+(function(){
+  var screen = document.getElementById('screen');
+  var nav    = document.getElementById('nav');
+  var pill   = document.getElementById('pill');
+  var tabs   = Array.prototype.slice.call(pill.querySelectorAll('.tab'));
+
+  var state = 'expanded';
+  var lastY = 0;
+  var acc   = 0;
+  var TOP_ZONE = 16;   // always expanded near the top of the page
+  var THRESHOLD = 12;  // px of sustained travel before the state flips
+
+  var ai      = document.getElementById('ai');
+  var player  = document.getElementById('player');
+  var pFab    = document.getElementById('pFab');
+  var pMini   = document.getElementById('pMini');
+  var pX      = document.getElementById('pX');
+  var listen  = document.getElementById('listen');
+  var fbEl    = document.getElementById('fb');
+  var fbFab   = document.getElementById('fbFab');
+  var fbMini  = document.getElementById('fbMini');
+  var fbX     = document.getElementById('fbX');
+  var fbTip   = document.getElementById('fbTip');
+  var fbIcon  = document.getElementById('fbIcon');
+  var pXin    = document.getElementById('pXin');
+  var fbQ     = document.getElementById('fbQ');
+  var rateBtn = document.getElementById('rate');
+  var fb = { on:false, timer:null };
+
+  var audio = { on:false, playing:false, t:0, dur:252, timer:null };
+  var ui = { open:null };
+
+  function setInert(el, off){
+    if(off){ el.setAttribute('inert',''); } else { el.removeAttribute('inert'); }
+  }
+
+  function syncInert(){
+    tabs.forEach(function(t){
+      var hide = state === 'collapsed' && !t.classList.contains('is-active');
+      if(hide){ t.setAttribute('inert',''); t.setAttribute('tabindex','-1'); }
+      else    { t.removeAttribute('inert'); t.removeAttribute('tabindex'); }
+    });
+    var expanded = state === 'expanded';
+    var dock = nav.getAttribute('data-layout') === 'dock';
+    var slot = nav.getAttribute('data-slot') || 'ai';
+    // current layout: one occupant at a time in the AI slot. dock layout: audio and feedback are independent circles.
+    var audioShown = dock ? audio.on : slot === 'audio';
+    var fbShown    = dock ? fb.on    : slot === 'feedback';
+    var openA = dock && ui.open === 'audio';
+    var openF = dock && ui.open === 'feedback';
+    setInert(ai,     !dock && slot !== 'ai' && expanded);   // current layout hides the AI button; dock keeps it
+    setInert(player, !audioShown);
+    setInert(pFab,   !audioShown || (!dock && !expanded) || openA);
+    setInert(pMini,  !audioShown || (dock ? !openA : expanded));
+    setInert(pX,     !audioShown || dock || !expanded);
+    setInert(pXin,   !audioShown || !dock || openA);
+    setInert(fbEl,   !fbShown);
+    setInert(fbFab,  !fbShown || dock || !expanded);
+    setInert(fbMini, !fbShown || (dock ? !openF : expanded));
+    setInert(fbX,    !fbShown || dock || !expanded);
+    setInert(fbIcon, !fbShown || !dock || openF);
+  }
+
+  // dock layout: which circle (if any) has unfolded into its pill
+  function setOpen(v){
+    ui.open = v;
+    nav.setAttribute('data-open', v || 'none');
+    syncInert();
+  }
+
+  // one occupant at a time in the AI button's slot: feedback > audio > AI
+  function applySlot(){
+    nav.setAttribute('data-slot', fb.on ? 'feedback' : (audio.on ? 'audio' : 'ai'));
+    nav.setAttribute('data-fb-live', fb.on ? 'true' : 'false');
+    nav.style.setProperty('--pi', '0');                       // audio sits next to the AI
+    nav.style.setProperty('--fi', audio.on ? '1' : '0');      // feedback goes one place further out when audio is live too
+    syncInert();
+  }
+
+  function setState(next){
+    if(next === state) return;
+    state = next;
+    nav.setAttribute('data-state', next);
+    syncInert();
+  }
+
+  screen.addEventListener('scroll', function(){
+    var y = Math.max(0, screen.scrollTop);
+    var dy = y - lastY;
+    lastY = y;
+
+    if(y <= TOP_ZONE){ acc = 0; setState('expanded'); return; }
+
+    // ignore rubber-band bounce back at the very bottom (but still collapse on the way down)
+    if(y >= screen.scrollHeight - screen.clientHeight - 1 && dy < 0) return;
+
+    if(dy === 0) return;
+    if((dy > 0) !== (acc > 0)) acc = 0;   // direction changed: restart the count
+    acc += dy;
+
+    if(acc > THRESHOLD)       setState('collapsed');   // scrolling down
+    else if(acc < -THRESHOLD) setState('expanded');    // scrolling up
+  }, { passive: true });
+
+  tabs.forEach(function(tab){
+    tab.addEventListener('click', function(){
+      // tapping the folded pill just unfolds it
+      if(state === 'collapsed'){ setState('expanded'); return; }
+      tabs.forEach(function(t){
+        var on = t === tab;
+        t.classList.toggle('is-active', on);
+        if(on) t.setAttribute('aria-current','page'); else t.removeAttribute('aria-current');
+      });
+    });
+  });
+
+  /* ---------- audio ---------- */
+  var progs  = player.querySelectorAll('.prog');
+  var timeEl = player.querySelector('.p-time');
+
+  function fmt(sec){ sec = Math.floor(sec); return Math.floor(sec/60) + ':' + ('0' + (sec % 60)).slice(-2); }
+
+  function renderAudio(){
+    var pct = Math.min(100, (audio.t / audio.dur) * 100);
+    for(var i = 0; i < progs.length; i++) progs[i].setAttribute('stroke-dashoffset', String(100 - pct));
+    timeEl.textContent = fmt(audio.t) + ' / ' + fmt(audio.dur);
+    nav.setAttribute('data-playing', audio.playing ? 'true' : 'false');
+    listen.classList.toggle('is-playing', audio.playing);
+    listen.setAttribute('aria-label', audio.playing ? 'Pause Suprabhatam' : 'Play Suprabhatam');
+  }
+
+  function tick(){
+    if(!audio.playing) return;
+    audio.t += 0.25;
+    if(audio.t >= audio.dur){ audio.t = 0; audio.playing = false; stopTimer(); }
+    renderAudio();
+  }
+  function startTimer(){ if(!audio.timer) audio.timer = setInterval(tick, 250); }
+  function stopTimer(){ if(audio.timer){ clearInterval(audio.timer); audio.timer = null; } }
+
+  function setPlaying(v){
+    audio.playing = v;
+    if(v) startTimer(); else stopTimer();
+    renderAudio();
+  }
+  function openAudio(){
+    audio.on = true;
+    nav.setAttribute('data-audio', 'on');
+    applySlot();
+    setPlaying(true);
+  }
+  function closeAudio(){
+    audio.on = false;
+    audio.t = 0;
+    if(ui.open === 'audio') setOpen(null);
+    nav.setAttribute('data-audio', 'off');
+    applySlot();
+    setPlaying(false);
+  }
+  function toggleAudio(){ setPlaying(!audio.playing); }
+
+  listen.addEventListener('click', function(){ if(!audio.on) openAudio(); else toggleAudio(); });
+  pFab.addEventListener('click', function(){
+    if(nav.getAttribute('data-layout') === 'dock') setOpen('audio'); else toggleAudio();
+  });
+  document.getElementById('pToggle').addEventListener('click', toggleAudio);
+  document.getElementById('pClose').addEventListener('click', closeAudio);
+  pX.addEventListener('click', closeAudio);
+
+  /* ---------- order feedback ---------- */
+  function setFbText(t){ fbTip.textContent = t; fbQ.textContent = t; }
+
+  function openFeedback(){
+    clearTimeout(fb.timer);
+    fb.on = true;
+    nav.setAttribute('data-fb', 'ask');
+    setFbText('How was your order?');
+    applySlot();
+  }
+  function closeFeedback(){
+    clearTimeout(fb.timer);
+    fb.on = false;
+    if(ui.open === 'feedback') setOpen(null);
+    applySlot();
+  }
+  function answerFeedback(){
+    clearTimeout(fb.timer);
+    nav.setAttribute('data-fb', 'thanks');
+    setFbText('Thanks for the feedback');
+    fb.timer = setTimeout(closeFeedback, 1800);
+  }
+
+  rateBtn.addEventListener('click', openFeedback);
+  Array.prototype.forEach.call(fbEl.querySelectorAll('[data-v]'), function(b){ b.addEventListener('click', answerFeedback); });
+  document.getElementById('fbClose').addEventListener('click', closeFeedback);
+  fbX.addEventListener('click', closeFeedback);
+  pXin.addEventListener('click', closeAudio);
+  // dock layout: tapping a circle unfolds it into its pill; tapping the pill's label (or anywhere else) folds it back
+  fbIcon.addEventListener('click', function(){ setOpen('feedback'); });
+  player.querySelector('.p-art').addEventListener('click', function(){ setOpen(null); });
+  player.querySelector('.p-meta').addEventListener('click', function(){ setOpen(null); });
+  fbQ.addEventListener('click', function(){ setOpen(null); });
+  document.addEventListener('pointerdown', function(e){
+    if(ui.open && !e.target.closest('.player, .fb')) setOpen(null);
+  });
+
+  /* ---------- layout toggle: A = AI hides, B = AI docks right ---------- */
+  var layoutBtns = Array.prototype.slice.call(document.querySelectorAll('.layout-toggle button'));
+  layoutBtns.forEach(function(btn){
+    btn.addEventListener('click', function(){
+      setOpen(null);
+      nav.setAttribute('data-layout', btn.getAttribute('data-layout'));
+      layoutBtns.forEach(function(b){ b.setAttribute('aria-pressed', b === btn ? 'true' : 'false'); });
+      syncInert();
+    });
+  });
+
+  /* ---------- side panel controls ---------- */
+  var cAudioOn = document.getElementById('ctlAudioOn'), cAudioOff = document.getElementById('ctlAudioOff');
+  var cFbOn = document.getElementById('ctlFbOn'), cFbOff = document.getElementById('ctlFbOff');
+  cAudioOn.addEventListener('click', function(){ if(!audio.on) openAudio(); });
+  cAudioOff.addEventListener('click', function(){ if(audio.on) closeAudio(); });
+  cFbOn.addEventListener('click', function(){ if(!fb.on) openFeedback(); });
+  cFbOff.addEventListener('click', function(){ if(fb.on) closeFeedback(); });
+  function syncPanel(){
+    cAudioOn.setAttribute('aria-pressed', audio.on ? 'true' : 'false');
+    cAudioOff.setAttribute('aria-pressed', audio.on ? 'false' : 'true');
+    cFbOn.setAttribute('aria-pressed', fb.on ? 'true' : 'false');
+    cFbOff.setAttribute('aria-pressed', fb.on ? 'false' : 'true');
+  }
+  var _applySlot = applySlot;
+  applySlot = function(){ _applySlot(); syncPanel(); };
+
+  nav.setAttribute('data-audio', 'off');
+  nav.setAttribute('data-playing', 'false');
+  nav.setAttribute('data-fb', 'ask');
+  nav.setAttribute('data-open', 'none');
+  renderAudio();
+  applySlot();
+})();
+</script>
+</body>
+</html>
